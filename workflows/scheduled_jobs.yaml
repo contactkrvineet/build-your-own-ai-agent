@@ -1,0 +1,26 @@
+# =============================================================================
+# AskVineet — Sample Workflow Definitions
+# =============================================================================
+# These scheduled jobs run automatically when the scheduler is enabled.
+# Format: standard 5-field cron expression
+#   ┌─ minute   (0-59)
+#   │ ┌── hour  (0-23)
+#   │ │ ┌─── day (1-31)
+#   │ │ │ ┌──── month (1-12)
+#   │ │ │ │ ┌───── weekday (0=Sun, 6=Sat)
+#   │ │ │ │ │
+#   * * * * *
+# =============================================================================
+
+jobs:
+  - id: daily_morning_brief
+    cron: "0 9 * * *" # Every day at 09:00 UTC
+    prompt: >
+      Give me a brief summary of any key information in the documents,
+      and list any important points Vineet should be aware of today.
+
+  - id: weekly_doc_health_check
+    cron: "0 8 * * 1" # Every Monday at 08:00 UTC
+    prompt: >
+      Review the document knowledge base and summarise what topics
+      are covered. Are there any gaps in the documentation?

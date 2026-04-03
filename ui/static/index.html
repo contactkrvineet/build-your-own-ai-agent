@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AskVineet — AI Agent</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+    <div id="askvineet-widget">
+
+        <!-- Header -->
+        <div class="av-header">
+            <span class="av-dot"></span>
+            <span class="av-dot"></span>
+            <span class="av-dot"></span>
+            <div class="av-title">&gt; AskVineet<span class="av-cursor">_</span></div>
+            <div class="av-subtitle">AI Agent · vineetkr.com</div>
+        </div>
+
+        <!-- Chat window -->
+        <div id="av-messages" class="av-messages">
+            <div class="av-msg av-msg--assistant">
+                <span class="av-prefix">[AskVineet]</span>
+                Hello! I'm AskVineet, Vineet Kumar's AI agent. Ask me about his experience,
+                skills, projects — or anything else! 🤖
+            </div>
+        </div>
+
+        <!-- Input area -->
+        <div class="av-input-row">
+            <span class="av-prompt">&gt;&nbsp;</span>
+            <input id="av-input" type="text" placeholder="Type your message and press Enter..." autocomplete="off"
+                maxlength="1000" />
+            <button id="av-send-btn" onclick="sendMessage()">SEND</button>
+        </div>
+
+        <!-- Status bar -->
+        <div class="av-status" id="av-status">ready</div>
+
+    </div>
+
+    <script src="chat.js"></script>
+</body>
+
+</html>

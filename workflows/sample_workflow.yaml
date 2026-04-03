@@ -1,0 +1,28 @@
+# =============================================================================
+# AskVineet — Sample Workflow Pipeline
+# =============================================================================
+# This pipeline demonstrates a multi-step automated workflow.
+# Run manually:  python -c "
+#   from app.workflows.pipeline import load_pipeline_from_file
+#   p = load_pipeline_from_file('./workflows/sample_workflow.yaml')
+#   print(p.run())
+# "
+# =============================================================================
+
+name: "Portfolio Showcase Pipeline"
+
+trigger:
+  type: manual # manual | scheduled | file_event
+
+steps:
+  - action: query_agent
+    input: "Summarise Vineet Kumar's key skills and experience in 3 bullet points."
+
+  - action: log
+    message: "Agent summary complete. Logging result."
+
+  - action: query_agent
+    input: "Based on the previous summary, what roles would suit Vineet best? List 3."
+
+  - action: log
+    message: "Pipeline finished successfully."

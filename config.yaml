@@ -1,0 +1,172 @@
+# =============================================================================
+# AskVineet Agent — Master Configuration
+# =============================================================================
+# All secrets MUST come from environment variables (see .env.example)
+# Values here are defaults and non-sensitive settings only.
+# =============================================================================
+
+agent:
+  name: "AskVineet"
+  description: "Production-grade AI Agent powering vineetkr.com portfolio"
+  version: "1.0.0"
+  debug: false # Set true for verbose logging
+
+# =============================================================================
+# LLM CONFIGURATION
+# Swap the provider + model below — ZERO code changes required.
+# =============================================================================
+llm:
+  # Provider options: openai | anthropic | gemini | groq | ollama | huggingface
+  provider: "groq"
+
+  # Model name scoped to the chosen provider:
+  #   groq        → llama3-8b-8192 | llama3-70b-8192 | mixtral-8x7b-32768
+  #   openai      → gpt-4o | gpt-4o-mini | gpt-3.5-turbo
+  #   anthropic   → claude-3-5-sonnet-20241022 | claude-3-haiku-20240307
+  #   gemini      → gemini-1.5-pro | gemini-1.5-flash
+  #   ollama      → llama3 | mistral | phi3 (must be pulled locally)
+  #   huggingface → HuggingFaceH4/zephyr-7b-beta
+  model: "llama3-8b-8192"
+
+  temperature: 0.7 # 0.0 (deterministic) → 1.0 (creative)
+  max_tokens: 2048 # Max output tokens
+  streaming: true # Stream tokens to UI
+  request_timeout: 60 # Seconds before timeout
+  max_retries: 3 # Retry failed LLM calls
+
+  # Ollama-specific: base URL of local Ollama server
+  ollama_base_url: "http://localhost:11434"
+
+# =============================================================================
+# RAG — RETRIEVAL-AUGMENTED GENERATION
+# =============================================================================
+rag:
+  enabled: true
+  documents_path: "./documents" # Drop files here; hot-reload picks them up
+
+  # Vector store backend: chroma | faiss
+  vector_store: "chroma"
+  vector_store_path: "./data/vectorstore"
+
+  # Sentence-Transformers model for embeddings (runs locally, no API key needed)
+  # Options: all-MiniLM-L6-v2 | all-mpnet-base-v2 | BAAI/bge-small-en-v1.5
+  embedding_model: "all-MiniLM-L6-v2"
+
+  chunk_size: 1000 # Characters per chunk
+  chunk_overlap: 200 # Overlap between chunks
+  top_k: 5 # Documents returned per query
+
+  supported_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".docx"
+    - ".md"
+
+  ocr_enabled: true # OCR for scanned PDFs / images
+  ocr_language: "eng" # Tesseract language code
+
+  hot_reload: true # Auto-index new files dropped in folder
+  collection_name: "askvineet_docs" # ChromaDB collection name
+
+# =============================================================================
+# EXTERNAL API TOOLS
+# Each tool can be toggled without code changes.
+# =============================================================================
+tools:
+  weather:
+    enabled: true
+    provider: "openweathermap"
+    units: "metric" # metric | imperial
+    default_city: "London"
+
+  gmail:
+    enabled: false # Set true + provide credentials
+    max_results: 10 # Max emails to fetch
+    scopes:
+      - "https://www.googleapis.com/auth/gmail.readonly"
+
+  calendar:
+    enabled: false
+    max_results: 10
+    scopes:
+      - "https://www.googleapis.com/auth/calendar.readonly"
+
+  custom_api:
+    enabled: false
+    endpoint: "https://api.example.com/data"
+    method: "GET" # GET | POST | PUT | PATCH
+    timeout: 30
+    headers: {} # Static headers (secrets via env vars)
+
+# =============================================================================
+# WORKFLOW & TRIGGER SYSTEM
+# =============================================================================
+workflows:
+  # APScheduler — cron-style triggers
+  scheduler:
+    enabled: true
+    timezone: "UTC"
+    jobs_file: "./workflows/scheduled_jobs.yaml"
+
+  # Watchdog — file-drop trigger
+  file_watcher:
+    enabled: true
+    watch_path: "./documents"
+    recursive: false
+    debounce_seconds: 2 # Wait before re-indexing
+
+  # Workflow pipeline definitions (YAML files in ./workflows/)
+  pipeline_dir: "./workflows"
+
+# =============================================================================
+# FastAPI REST / WebSocket API
+# =============================================================================
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: false # Set true in development
+  workers: 1
+  log_level: "info"
+
+  cors:
+    enabled: true
+    origins:
+      - "http://localhost:8501" # Streamlit
+      - "http://localhost:3000" # Any React/Next.js frontend
+      - "https://vineetkr.com" # Portfolio site
+
+  websocket:
+    enabled: true
+    ping_interval: 30
+
+# =============================================================================
+# STREAMLIT UI
+# =============================================================================
+ui:
+  title: "AskVineet"
+  subtitle: "AI Agent · vineetkr.com"
+  port: 8501
+  theme: "dark_green" # black background, green text
+  show_sources: true # Show RAG source documents
+  show_agent_thought: false # Show ReAct reasoning steps
+
+# =============================================================================
+# MEMORY
+# =============================================================================
+memory:
+  short_term:
+    type: "buffer_window" # buffer_window | buffer | summary
+    window_size: 10 # Last N conversation turns
+  long_term:
+    enabled: true
+    collection_name: "askvineet_memory"
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+logging:
+  level: "INFO" # DEBUG | INFO | WARNING | ERROR
+  format: "json" # json | text
+  file: "./data/logs/askvineet.log"
+  rotation: "10 MB"
+  retention: "1 week"
