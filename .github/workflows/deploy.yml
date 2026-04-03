@@ -1,0 +1,242 @@
+# =============================================================================
+# AskVineet — CI/CD Pipeline
+# Triggers: push to main, manual dispatch
+#
+# Jobs:
+#   1. test    — lint + unit tests (no secrets needed)
+#   2. build   — Docker image → push to GitHub Container Registry
+#   3. deploy  — SSH into remote server, pull image, docker compose up
+#
+# Required GitHub Secrets:
+#   GROQ_API_KEY              — LLM provider key (or whichever provider you use)
+#   SECRET_KEY                — Application secret key
+#   DEPLOY_HOST               — Remote server IP / hostname
+#   DEPLOY_USER               — SSH username on remote server
+#   DEPLOY_SSH_KEY            — Private SSH key (ed25519 or RSA)
+#
+# Optional GitHub Secrets (only if features are enabled):
+#   OPENAI_API_KEY
+#   ANTHROPIC_API_KEY
+#   GOOGLE_API_KEY
+#   HUGGINGFACE_API_TOKEN
+#   OPENWEATHERMAP_API_KEY
+#   CUSTOM_API_KEY
+#   LANGCHAIN_API_KEY
+#
+# Non-secret Variables (set in GitHub → Settings → Variables → Actions):
+#   LLM_PROVIDER              — e.g. groq (default: groq)
+#   LLM_MODEL                 — e.g. llama3-8b-8192 (default: llama3-8b-8192)
+#   APP_ENV                   — e.g. production (default: production)
+# =============================================================================
+
+name: CI/CD — Test, Build, Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: "Deploy target environment"
+        required: false
+        default: "production"
+        type: choice
+        options:
+          - production
+          - staging
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ===========================================================================
+  # Job 1: Test — Lint + Unit Tests
+  # ===========================================================================
+  test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr poppler-utils
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: |
+          pytest tests/ -v -m "not live" --tb=short --junitxml=test-results.xml
+        env:
+          # Minimal env so settings.py doesn't fail — no real keys needed for mocked tests
+          APP_ENV: test
+          GROQ_API_KEY: "test-key-not-real"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.xml
+
+  # ===========================================================================
+  # Job 2: Build — Docker image → GitHub Container Registry
+  # ===========================================================================
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+      image_digest: ${{ steps.build-push.outputs.digest }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        id: build-push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          target: runtime
+
+  # ===========================================================================
+  # Job 3: Deploy — SSH to remote server, pull & restart
+  # ===========================================================================
+  deploy:
+    name: Deploy to Remote Server
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 10
+    environment: production
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+
+            APP_DIR="${HOME}/askvineet"
+            mkdir -p "${APP_DIR}"
+            cd "${APP_DIR}"
+
+            # Pull latest code (or clone if first deploy)
+            if [ -d .git ]; then
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              git clone https://github.com/${{ github.repository }}.git .
+            fi
+
+            # Write .env from GitHub Secrets + Variables
+            cat > .env <<'ENVEOF'
+            # ── LLM Keys (secrets) ──
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+            GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
+            HUGGINGFACE_API_TOKEN=${{ secrets.HUGGINGFACE_API_TOKEN }}
+
+            # ── Tool Keys (secrets) ──
+            OPENWEATHERMAP_API_KEY=${{ secrets.OPENWEATHERMAP_API_KEY }}
+            CUSTOM_API_KEY=${{ secrets.CUSTOM_API_KEY }}
+
+            # ── App Secrets ──
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+
+            # ── Observability (secrets) ──
+            LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
+
+            # ── Non-secret system variables ──
+            APP_ENV=${{ vars.APP_ENV || 'production' }}
+            LLM_PROVIDER=${{ vars.LLM_PROVIDER || 'groq' }}
+            LLM_MODEL=${{ vars.LLM_MODEL || 'llama3-8b-8192' }}
+            LANGCHAIN_TRACING_V2=${{ vars.LANGCHAIN_TRACING_V2 || 'false' }}
+            LANGCHAIN_PROJECT=${{ vars.LANGCHAIN_PROJECT || 'askvineet' }}
+            LITELLM_LOG=${{ vars.LITELLM_LOG || 'ERROR' }}
+            ENVEOF
+
+            # Remove leading whitespace from heredoc
+            sed -i 's/^[[:space:]]*//' .env
+
+            # Log in to GHCR and pull the latest image
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            docker compose pull
+
+            # Restart services with zero-downtime (recreate only changed containers)
+            docker compose up -d --remove-orphans --wait
+
+            # Cleanup old images
+            docker image prune -f
+
+            # Health check
+            echo "Waiting for health check..."
+            for i in $(seq 1 30); do
+              if curl -sf http://localhost:8000/health/ > /dev/null 2>&1; then
+                echo "✅ Health check passed"
+                exit 0
+              fi
+              sleep 2
+            done
+            echo "❌ Health check failed after 60s"
+            docker compose logs --tail=50 api
+            exit 1

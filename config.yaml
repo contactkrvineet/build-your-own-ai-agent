@@ -16,8 +16,13 @@ agent:
 # Swap the provider + model below — ZERO code changes required.
 # =============================================================================
 llm:
-  # Provider options: openai | anthropic | gemini | groq | ollama | huggingface
+  # Active provider: groq (others commented out)
+  # provider: "openai"
+  # provider: "anthropic"
+  # provider: "gemini"
   provider: "groq"
+  # provider: "ollama"
+  # provider: "huggingface"
 
   # Model name scoped to the chosen provider:
   #   groq        → llama3-8b-8192 | llama3-70b-8192 | mixtral-8x7b-32768
@@ -27,6 +32,11 @@ llm:
   #   ollama      → llama3 | mistral | phi3 (must be pulled locally)
   #   huggingface → HuggingFaceH4/zephyr-7b-beta
   model: "llama3-8b-8192"
+  # model: "gpt-4o"                          # openai
+  # model: "claude-3-5-sonnet-20241022"      # anthropic
+  # model: "gemini-1.5-pro"                  # gemini
+  # model: "llama3"                          # ollama
+  # model: "HuggingFaceH4/zephyr-7b-beta"   # huggingface
 
   temperature: 0.7 # 0.0 (deterministic) → 1.0 (creative)
   max_tokens: 2048 # Max output tokens

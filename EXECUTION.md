@@ -20,11 +20,13 @@
 brew install tesseract poppler
 ```
 
-**Ubuntu/Debian Tesseract install (optional):**
+**Ubuntu/Debian Tesseract install (optional — Linux servers only, skip on macOS):**
 
 ```bash
-sudo apt-get install -y tesseract-ocr poppler-utils
+sudo apt-get update && sudo apt-get install -y tesseract-ocr poppler-utils
 ```
+
+> **Note:** On macOS use `brew install tesseract poppler` (shown above). The `apt-get` command is for Linux only (e.g. your remote deploy server).
 
 ---
 
@@ -186,7 +188,7 @@ curl -X POST http://localhost:8000/chat/ \
 ```bash
 # Upload a document
 curl -X POST http://localhost:8000/documents/upload \
-  -F "file=@documents/vineet_resume.pdf"
+  -F "file=@documents/vineet_test.pdf"
 ```
 
 ---
@@ -372,3 +374,136 @@ docker compose build --build-arg BUILDPLATFORM=linux/amd64
 ```
 
 **Tesseract not found** — OCR is optional; disable with `rag.ocr_enabled: false` in `config.yaml`.
+
+---
+
+## 16. Production Deployment via GitHub Actions
+
+A CI/CD pipeline is defined at `.github/workflows/deploy.yml`. It runs three jobs on every push to `main`:
+
+| Job        | What it does                                                                             |
+| ---------- | ---------------------------------------------------------------------------------------- |
+| **test**   | Installs deps, runs `pytest tests/ -m "not live"`                                        |
+| **build**  | Builds the Docker image and pushes to `ghcr.io`                                          |
+| **deploy** | SSHs into the remote server, pulls the image, writes `.env`, runs `docker compose up -d` |
+
+### 16.1 GitHub Secrets (Settings → Secrets → Actions)
+
+These are **required**:
+
+| Secret           | Description                                      |
+| ---------------- | ------------------------------------------------ |
+| `GROQ_API_KEY`   | Groq API key (or whichever LLM provider you use) |
+| `SECRET_KEY`     | Application secret (random 32+ char string)      |
+| `DEPLOY_HOST`    | Remote server IP or hostname                     |
+| `DEPLOY_USER`    | SSH username on the remote server                |
+| `DEPLOY_SSH_KEY` | Private SSH key (ed25519 recommended)            |
+
+These are **optional** (only add if you use the feature):
+
+| Secret                   | Feature                   |
+| ------------------------ | ------------------------- |
+| `OPENAI_API_KEY`         | OpenAI provider           |
+| `ANTHROPIC_API_KEY`      | Anthropic/Claude provider |
+| `GOOGLE_API_KEY`         | Gemini provider           |
+| `HUGGINGFACE_API_TOKEN`  | HuggingFace provider      |
+| `OPENWEATHERMAP_API_KEY` | Weather tool              |
+| `CUSTOM_API_KEY`         | Custom REST API tool      |
+| `LANGCHAIN_API_KEY`      | LangSmith observability   |
+
+### 16.2 GitHub Variables (Settings → Variables → Actions)
+
+Non-secret configuration — these fall through to `.env` on the server:
+
+| Variable               | Default          | Description              |
+| ---------------------- | ---------------- | ------------------------ |
+| `APP_ENV`              | `production`     | Application environment  |
+| `LLM_PROVIDER`         | `groq`           | LLM provider name        |
+| `LLM_MODEL`            | `llama3-8b-8192` | Model identifier         |
+| `LANGCHAIN_TRACING_V2` | `false`          | Enable LangSmith tracing |
+| `LANGCHAIN_PROJECT`    | `askvineet`      | LangSmith project name   |
+| `LITELLM_LOG`          | `ERROR`          | LiteLLM log verbosity    |
+
+### 16.3 Remote Server Prerequisites
+
+The deploy target must have:
+
+```bash
+# Docker + Compose
+docker --version        # 24+
+docker compose version  # 2.20+
+
+# Git
+git --version
+```
+
+### 16.4 Trigger a Deploy
+
+```bash
+# Automatic: push to main
+git push origin main
+
+# Manual: GitHub → Actions → "CI/CD — Test, Build, Deploy" → Run workflow
+```
+
+### 16.5 Verify Production
+
+```bash
+# From your local machine (replace with your server IP)
+curl https://your-server.com/health/
+curl https://your-server.com/health/llm
+
+# SSH into server and check logs
+ssh user@your-server.com
+cd ~/askvineet
+docker compose logs -f api
+docker compose logs -f ui
+```
+
+---
+
+## 17. Running All Servers — Quick Reference
+
+### Local Development (no Docker)
+
+```bash
+# Terminal 1 — FastAPI backend
+source .venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2 — Streamlit UI
+source .venv/bin/activate
+streamlit run ui/streamlit_app.py --server.port 8501
+```
+
+### Local with Docker
+
+```bash
+# Start both services
+docker compose up --build -d
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+
+### Production (remote server via CI/CD)
+
+Push to `main` → GitHub Actions builds, pushes, and deploys automatically.
+
+```bash
+# Manual deploy (on the server itself)
+cd ~/askvineet
+git pull origin main
+docker compose pull
+docker compose up -d --remove-orphans
+```
+
+| Service         | Local URL                     | Production URL                  |
+| --------------- | ----------------------------- | ------------------------------- |
+| FastAPI Backend | http://localhost:8000         | https://your-domain.com         |
+| Swagger Docs    | http://localhost:8000/docs    | https://your-domain.com/docs    |
+| Health Check    | http://localhost:8000/health/ | https://your-domain.com/health/ |
+| Streamlit UI    | http://localhost:8501         | https://your-domain.com:8501    |

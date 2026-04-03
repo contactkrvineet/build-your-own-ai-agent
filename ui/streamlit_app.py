@@ -209,6 +209,43 @@ st.markdown(
 )
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _api_post(endpoint: str, payload: dict) -> Optional[dict]:
+    try:
+        r = httpx.post(f"{API_BASE}{endpoint}", json=payload, timeout=60)
+        r.raise_for_status()
+        return r.json()
+    except Exception as e:
+        return None
+
+
+def _upload_document(file) -> Optional[dict]:
+    try:
+        r = httpx.post(
+            f"{API_BASE}/documents/upload",
+            files={"file": (file.name, file.getvalue(), file.type)},
+            timeout=60,
+        )
+        r.raise_for_status()
+        return r.json()
+    except Exception:
+        return None
+
+
+def _show_health() -> None:
+    try:
+        r = httpx.get(f"{API_BASE}/health", timeout=5)
+        if r.status_code == 200:
+            st.sidebar.success("✅ API online")
+        else:
+            st.sidebar.warning(f"⚠️ API status: {r.status_code}")
+    except Exception:
+        st.sidebar.error("❌ API offline — start with `uvicorn app.main:app`")
+
+
+# ---------------------------------------------------------------------------
 # Sidebar controls
 # ---------------------------------------------------------------------------
 
@@ -245,43 +282,6 @@ with st.sidebar:
     st.markdown("### 🩺 System Status")
     if st.button("Check API"):
         _show_health()
-
-
-# ---------------------------------------------------------------------------
-# Helpers (defined after sidebar so they can use show_sources etc.)
-# ---------------------------------------------------------------------------
-
-def _api_post(endpoint: str, payload: dict) -> Optional[dict]:
-    try:
-        r = httpx.post(f"{API_BASE}{endpoint}", json=payload, timeout=60)
-        r.raise_for_status()
-        return r.json()
-    except Exception as e:
-        return None
-
-
-def _upload_document(file) -> Optional[dict]:
-    try:
-        r = httpx.post(
-            f"{API_BASE}/documents/upload",
-            files={"file": (file.name, file.getvalue(), file.type)},
-            timeout=60,
-        )
-        r.raise_for_status()
-        return r.json()
-    except Exception:
-        return None
-
-
-def _show_health() -> None:
-    try:
-        r = httpx.get(f"{API_BASE}/health", timeout=5)
-        if r.status_code == 200:
-            st.sidebar.success("✅ API online")
-        else:
-            st.sidebar.warning(f"⚠️ API status: {r.status_code}")
-    except Exception:
-        st.sidebar.error("❌ API offline — start with `uvicorn app.main:app`")
 
 
 # ---------------------------------------------------------------------------

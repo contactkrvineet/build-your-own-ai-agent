@@ -4,9 +4,9 @@
 # =============================================================================
 
 # ── Agent Orchestration ───────────────────────────────────────────────────────
-langchain==0.2.16
-langchain-community==0.2.16
-langchain-core==0.2.38
+langchain>=0.3.0,<0.4.0
+langchain-community>=0.3.0,<0.4.0
+langchain-core>=0.3.0,<0.4.0
 
 # ── LLM Abstraction (100+ providers via one API) ─────────────────────────────
 litellm==1.44.22
@@ -17,15 +17,15 @@ anthropic==0.34.0
 google-generativeai==0.7.2
 
 # ── Vector Stores ─────────────────────────────────────────────────────────────
-chromadb==0.5.15
-faiss-cpu==1.8.0.post1
-langchain-chroma==0.1.4
+chromadb>=0.5.15
+faiss-cpu>=1.9.0
+langchain-chroma>=0.2.0
 
 # ── Embeddings ────────────────────────────────────────────────────────────────
 sentence-transformers==3.1.1
 
 # ── Document Loaders & OCR ───────────────────────────────────────────────────
-unstructured[pdf,docx]==0.15.13
+unstructured[pdf,docx]>=0.14.0
 pypdf==4.3.1
 python-docx==1.1.2
 pytesseract==0.3.13
@@ -60,7 +60,7 @@ streamlit==1.38.0
 # ── Utilities ─────────────────────────────────────────────────────────────────
 loguru==0.7.2
 rich==13.8.1
-tenacity==9.0.0
+tenacity==8.5.0
 aiofiles==24.1.0
 
 # ── Testing ───────────────────────────────────────────────────────────────────

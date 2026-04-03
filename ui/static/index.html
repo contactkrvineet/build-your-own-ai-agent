@@ -10,38 +10,130 @@
 
 <body>
 
-    <div id="askvineet-widget">
+    <!-- Mobile overlay backdrop -->
+    <div class="av-overlay" id="av-overlay"></div>
 
-        <!-- Header -->
-        <div class="av-header">
-            <span class="av-dot"></span>
-            <span class="av-dot"></span>
-            <span class="av-dot"></span>
-            <div class="av-title">&gt; AskVineet<span class="av-cursor">_</span></div>
-            <div class="av-subtitle">AI Agent · vineetkr.com</div>
-        </div>
+    <div class="av-layout">
 
-        <!-- Chat window -->
-        <div id="av-messages" class="av-messages">
-            <div class="av-msg av-msg--assistant">
-                <span class="av-prefix">[AskVineet]</span>
-                Hello! I'm AskVineet, Vineet Kumar's AI agent. Ask me about his experience,
-                skills, projects — or anything else! 🤖
+        <!-- ── Sidebar ── -->
+        <aside class="av-sidebar" id="av-sidebar">
+            <button class="av-sidebar-toggle" id="av-sidebar-toggle" title="Toggle sidebar">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round">
+                    <line x1="3" y1="5" x2="17" y2="5" />
+                    <line x1="3" y1="10" x2="17" y2="10" />
+                    <line x1="3" y1="15" x2="17" y2="15" />
+                </svg>
+            </button>
+            <div class="av-sidebar-content">
+                <div>
+                    <div class="av-sidebar-section-title">Session</div>
+                    <button class="av-sidebar-btn" id="av-new-chat">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round">
+                            <line x1="7" y1="2" x2="7" y2="12" />
+                            <line x1="2" y1="7" x2="12" y2="7" />
+                        </svg>
+                        New conversation
+                    </button>
+                </div>
+                <div>
+                    <div class="av-sidebar-section-title">Session ID</div>
+                    <div class="av-session-pill" id="av-session-pill" title="Click to copy">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                            stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4.5" y="4.5" width="7" height="7" rx="1.5" />
+                            <path
+                                d="M9.5 4.5V3a1.5 1.5 0 0 0-1.5-1.5H3A1.5 1.5 0 0 0 1.5 3v5A1.5 1.5 0 0 0 3 9.5h1.5" />
+                        </svg>
+                        <span id="av-session-label">--------</span>
+                        <span class="av-copied-tooltip" id="av-copied-tooltip">Copied!</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="av-sidebar-section-title">Status</div>
+                    <div class="av-status-pill" id="av-status-pill">
+                        <span class="av-status-dot offline" id="av-status-dot"></span>
+                        <span class="av-status-text" id="av-status-text">Checking…</span>
+                    </div>
+                </div>
             </div>
-        </div>
+        </aside>
 
-        <!-- Input area -->
-        <div class="av-input-row">
-            <span class="av-prompt">&gt;&nbsp;</span>
-            <input id="av-input" type="text" placeholder="Type your message and press Enter..." autocomplete="off"
-                maxlength="1000" />
-            <button id="av-send-btn" onclick="sendMessage()">SEND</button>
-        </div>
+        <!-- ── Main Area ── -->
+        <div class="av-main">
 
-        <!-- Status bar -->
-        <div class="av-status" id="av-status">ready</div>
+            <!-- Header / Logo -->
+            <div class="av-header">
+                <div class="av-logo-lockup">
+                    <svg class="av-logo-icon" width="52" height="52" viewBox="0 0 52 52" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <rect width="52" height="52" rx="12" fill="#00FF9C" opacity="0.08" />
+                        <rect width="52" height="52" rx="12" fill="none" stroke="#00FF9C" stroke-width="1"
+                            opacity="0.3" />
+                        <path d="M14 14 L26 36 L38 14" fill="none" stroke="#00FF9C" stroke-width="3"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="26" cy="38" r="2.5" fill="#00FF9C" />
+                    </svg>
+                    <div class="av-logo-wordmark">
+                        <span class="av-logo-name">Vineet Kumar</span>
+                        <span class="av-logo-tagline">VINEET AI AGENT</span>
+                    </div>
+                </div>
+            </div>
 
-    </div>
+            <!-- Chat window -->
+            <div id="av-messages" class="av-messages">
+                <!-- Welcome panel (shown when empty) -->
+                <div class="av-welcome" id="av-welcome">
+                    <div class="av-welcome-heading">&gt; Ask me anything</div>
+                    <div class="av-welcome-subtitle">Upload a doc or try one of these:</div>
+                    <div class="av-welcome-chips">
+                        <button class="av-chip" data-prompt="Summarize a PDF">Summarize a PDF</button>
+                        <button class="av-chip" data-prompt="Explain this document">Explain this document</button>
+                        <button class="av-chip" data-prompt="Find key insights">Find key insights</button>
+                        <button class="av-chip" data-prompt="Compare two files">Compare two files</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="av-input-row">
+                <button class="av-attach-btn" id="av-attach-btn" title="Upload file">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 10.5V14a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3h3.5" />
+                        <path d="M11 3h6v6" />
+                        <path d="M11 9L17 3" />
+                    </svg>
+                </button>
+                <input type="file" id="av-file-input" />
+                <div class="av-input-wrapper">
+                    <textarea id="av-input" rows="1" placeholder="Type your message…" maxlength="1000"></textarea>
+                    <div class="av-input-meta">
+                        <span class="av-keyboard-hint">⌘↵ to send</span>
+                        <span class="av-char-count" id="av-char-count">0 / 1000</span>
+                    </div>
+                </div>
+                <button id="av-send-btn">SEND</button>
+            </div>
+
+            <!-- Status bar -->
+            <div class="av-status" id="av-status">ready</div>
+
+        </div><!-- /.av-main -->
+
+    </div><!-- /.av-layout -->
+
+    <!-- Mobile hamburger -->
+    <button class="av-hamburger" id="av-hamburger" title="Menu">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round">
+            <line x1="4" y1="6" x2="18" y2="6" />
+            <line x1="4" y1="11" x2="18" y2="11" />
+            <line x1="4" y1="16" x2="18" y2="16" />
+        </svg>
+    </button>
 
     <script src="chat.js"></script>
 </body>

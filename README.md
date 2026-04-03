@@ -1,12 +1,12 @@
-# AskVineet
+# Vineet AI AGENT
 
 > A production-grade AI Agent showcasing advanced AI engineering — built for [vineetkr.com](https://vineetkr.com)
 
 ---
 
-## What Is AskVineet?
+## What Is Vineet AI AGENT ?
 
-AskVineet is a modular, configurable AI agent that answers questions about Vineet Kumar using RAG over personal documents, connects to external APIs (weather, Gmail, Calendar), and runs automated workflows — all with a single config change to swap LLM provider.
+Vineet AI AGENT is a modular, configurable AI agent that answers questions about Vineet Kumar using RAG over personal documents, connects to external APIs (weather, Gmail, Calendar), and runs automated workflows — all with a single config change to swap LLM provider.
 
 **Built to demonstrate**: LLM abstraction, RAG pipelines, ReAct tool-use, workflow automation, FastAPI, Streamlit, Docker, and SDET-focused LLM I/O validation testing.
 
