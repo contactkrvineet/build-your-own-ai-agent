@@ -78,7 +78,7 @@ class Settings(BaseSettings):
         default_factory=lambda: _get(_yaml, "llm", "provider", default="groq")
     )
     llm_model: str = Field(
-        default_factory=lambda: _get(_yaml, "llm", "model", default="llama3-8b-8192")
+        default_factory=lambda: _get(_yaml, "llm", "model", default="llama-3.3-70b-versatile")
     )
     llm_temperature: float = Field(
         default_factory=lambda: _get(_yaml, "llm", "temperature", default=0.7)

@@ -25,13 +25,13 @@ llm:
   # provider: "huggingface"
 
   # Model name scoped to the chosen provider:
-  #   groq        → llama3-8b-8192 | llama3-70b-8192 | mixtral-8x7b-32768
+  #   groq        → llama-3.3-70b-versatile | llama-3.1-8b-instant | mixtral-8x7b-32768
   #   openai      → gpt-4o | gpt-4o-mini | gpt-3.5-turbo
   #   anthropic   → claude-3-5-sonnet-20241022 | claude-3-haiku-20240307
   #   gemini      → gemini-1.5-pro | gemini-1.5-flash
   #   ollama      → llama3 | mistral | phi3 (must be pulled locally)
   #   huggingface → HuggingFaceH4/zephyr-7b-beta
-  model: "llama3-8b-8192"
+  model: "llama-3.3-70b-versatile"
   # model: "gpt-4o"                          # openai
   # model: "claude-3-5-sonnet-20241022"      # anthropic
   # model: "gemini-1.5-pro"                  # gemini
