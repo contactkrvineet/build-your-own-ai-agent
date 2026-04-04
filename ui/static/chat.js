@@ -3,8 +3,8 @@
  * Connects to FastAPI backend via REST (with WebSocket upgrade path).
  */
 
-const API_BASE = "http://localhost:8000";
-const WS_BASE = "ws://localhost:8000";
+const API_BASE = window.location.origin;
+const WS_BASE = window.location.origin.replace(/^http/, "ws");
 let sessionId = crypto.randomUUID();
 let ws = null;
 let isWaiting = false;

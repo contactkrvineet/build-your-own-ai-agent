@@ -64,10 +64,7 @@ services:
     dockerCommand: streamlit run ui/streamlit_app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false
     envVars:
       - key: API_BASE_URL
-        fromService:
-          name: askvineet-api
-          type: web
-          property: hostport
+        sync: false # Set manually: https://askvineet-api.onrender.com
       - key: PYTHONPATH
         value: /app
       - key: PYTHONDONTWRITEBYTECODE

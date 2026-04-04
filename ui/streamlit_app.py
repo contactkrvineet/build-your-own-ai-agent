@@ -14,6 +14,8 @@ from typing import Optional
 import httpx
 import streamlit as st
 
+import os
+
 # ---------------------------------------------------------------------------
 # Page config (must be first Streamlit call)
 # ---------------------------------------------------------------------------
@@ -173,7 +175,7 @@ st.markdown(DARK_GREEN_CSS, unsafe_allow_html=True)
 # Constants
 # ---------------------------------------------------------------------------
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000").rstrip("/")
 DEFAULT_SESSION = str(uuid.uuid4())
 
 # ---------------------------------------------------------------------------
