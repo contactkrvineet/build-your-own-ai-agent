@@ -6,7 +6,7 @@
 
 ## What Is Vineet AI AGENT ?
 
-Vineet AI AGENT is a modular, configurable AI agent that answers questions about Vineet Kumar using RAG over personal documents, connects to external APIs (weather, Gmail, Calendar), and runs automated workflows — all with a single config change to swap LLM provider.
+Vineet AI AGENT is a modular, configurable AI agent that answers questions about using RAG over personal documents, connects to external APIs (weather, Gmail, Calendar), and runs automated workflows — all with a single config change to swap LLM provider.
 
 **Built to demonstrate**: LLM abstraction, RAG pipelines, ReAct tool-use, workflow automation, FastAPI, Streamlit, Docker, and SDET-focused LLM I/O validation testing.
 
@@ -44,7 +44,7 @@ cp .env.example .env
 echo "GROQ_API_KEY=gsk_YOUR_KEY" >> .env    # Free at console.groq.com
 
 # 4. Add your documents (optional)
-cp ~/Downloads/resume.pdf documents/
+cp ~/Downloads/document.pdf documents/
 
 # 5. Start API
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
@@ -148,6 +148,38 @@ Interactive docs: **http://localhost:8000/docs**
 
 ---
 
+## Accessible URLs
+
+### Local Development
+
+| Service              | URL                                      | Description                        |
+| -------------------- | ---------------------------------------- | ---------------------------------- |
+| **Streamlit UI**     | http://localhost:8501                    | Chat interface                     |
+| **FastAPI Backend**  | http://localhost:8000                    | REST API base                      |
+| **Swagger Docs**     | http://localhost:8000/docs               | Interactive API docs (auto-generated) |
+| **ReDoc**            | http://localhost:8000/redoc              | Alternative API docs               |
+| **Health Check**     | http://localhost:8000/health/            | System status                      |
+| **LLM Health**       | http://localhost:8000/health/llm         | LLM provider reachability          |
+| **WebSocket Chat**   | ws://localhost:8000/chat/ws/{session_id} | Real-time streaming chat           |
+
+### Docker (`docker compose up`)
+
+Same URLs as local — ports `8000` (API) and `8501` (UI) are mapped by default.
+
+### Render.com (Production)
+
+| Service              | URL                                                | Notes                              |
+| -------------------- | -------------------------------------------------- | ---------------------------------- |
+| **API**              | https://askvineet-api.onrender.com                 | FastAPI backend                    |
+| **UI**               | https://askvineet-ui.onrender.com                  | Streamlit chat app                 |
+| **Swagger Docs**     | https://askvineet-api.onrender.com/docs            | Live interactive docs              |
+| **Health Check**     | https://askvineet-api.onrender.com/health/         | Used by Render for health monitoring |
+| **WebSocket Chat**   | wss://askvineet-api.onrender.com/chat/ws/{session_id} | Secure streaming in production  |
+
+> **Note**: Free-tier Render services spin down after 15 min idle. The first request after spin-down takes ~30-60 seconds to cold-start.
+
+---
+
 ## Running Tests
 
 ```bash
@@ -221,6 +253,42 @@ To enable GitHub Actions auto-deploy:
 7. Response (answer + route + sources + token count) returned to client.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for full diagrams and data flow.
+
+---
+
+## What Can You Ask?
+
+The agent **auto-detects intent** and routes each query to the right path:
+
+### RAG Queries — Ask about uploaded documents
+
+> "Tell me about Vineet's experience"  
+> "What projects are in his portfolio?"  
+> "Summarize his resume"  
+> "What skills does Vineet have?"  
+> "What certifications does he hold?"
+
+**Trigger keywords**: document, file, PDF, resume, portfolio, Vineet, skills, projects
+
+### Tool Queries — Get live data
+
+| Tool           | Example Prompts                                                  |
+| -------------- | ---------------------------------------------------------------- |
+| **Weather**    | "What's the weather in London?", "Temperature in San Francisco?" |
+| **Gmail**      | "Check my unread emails", "Summarize my inbox"                   |
+| **Calendar**   | "What's on my calendar tomorrow?", "Show my upcoming meetings"   |
+| **Custom API** | "Fetch data from my API"                                         |
+
+**Trigger keywords**: weather, temperature, email, gmail, calendar, schedule, API, fetch
+
+### Direct Queries — General LLM knowledge
+
+> "Explain OAuth2"  
+> "How do I debug a Python async function?"  
+> "What is a ReAct agent?"  
+> "Hi, how are you?"
+
+Any query that doesn't match RAG or tool keywords goes straight to the LLM.
 
 ---
 
