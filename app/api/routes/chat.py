@@ -61,17 +61,24 @@ async def chat(request: ChatRequest) -> ChatResponse:
     - Call tools (weather, Gmail, calendar) if live data is needed.
     - Fall back to direct LLM response for general questions.
     """
-    agent = get_agent()
-    response = await agent.achat(request.message, session_id=request.session_id)
+    try:
+        agent = get_agent()
+        response = await agent.achat(request.message, session_id=request.session_id)
 
-    return ChatResponse(
-        answer=response.answer,
-        session_id=response.session_id,
-        route_used=response.route_used,
-        sources=[SourceDoc(**s) for s in response.sources],
-        tool_calls=response.tool_calls,
-        error=response.error,
-    )
+        return ChatResponse(
+            answer=response.answer,
+            session_id=response.session_id,
+            route_used=response.route_used,
+            sources=[SourceDoc(**s) for s in response.sources],
+            tool_calls=response.tool_calls,
+            error=response.error,
+        )
+    except Exception as e:
+        logger.error(f"Chat endpoint error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent error: {type(e).__name__}: {str(e)}",
+        )
 
 
 @router.get(
