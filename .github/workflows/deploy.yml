@@ -167,9 +167,16 @@ jobs:
 
     steps:
       - name: Trigger Render deploy — API service
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
         run: |
-          curl -sf "${{ secrets.RENDER_DEPLOY_HOOK_API }}" \
-            || { echo "❌ Failed to trigger API deploy. Is RENDER_DEPLOY_HOOK_API secret set?"; exit 1; }
+          if [ -z "$HOOK" ]; then
+            echo "⚠️ RENDER_DEPLOY_HOOK_API secret not set — skipping deploy"
+            echo "   Add it in GitHub → Settings → Secrets → Actions"
+            exit 0
+          fi
+          curl -sf "$HOOK" \
+            || { echo "❌ Failed to trigger API deploy"; exit 1; }
           echo "✅ API deploy triggered"
 
       - name: Trigger Render deploy — UI service (optional)
