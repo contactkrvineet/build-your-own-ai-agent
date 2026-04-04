@@ -57,5 +57,5 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 EXPOSE 8000 8501
 
-# Default: run FastAPI API
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Default: run FastAPI API (PORT env var overridable for Render)
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1

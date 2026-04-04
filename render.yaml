@@ -27,6 +27,8 @@ services:
     healthCheckPath: /health/
     envVars:
       # ── Required ──
+      - key: PORT
+        value: "8000"
       - key: GROQ_API_KEY
         sync: false # Must be set manually in Render dashboard
       # ── Non-secret defaults ──
@@ -61,8 +63,10 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    dockerCommand: streamlit run ui/streamlit_app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false
+    dockerCommand: streamlit run ui/streamlit_app.py --server.port 10000 --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false
     envVars:
+      - key: PORT
+        value: "10000"
       - key: API_BASE_URL
         sync: false # Set manually: https://askvineet-api.onrender.com
       - key: PYTHONPATH

@@ -89,9 +89,10 @@ class AskVineetAgent:
         self._tools = _load_enabled_tools()
         logger.info(f"Loaded {len(self._tools)} tool(s): {[t.name for t in self._tools]}")
 
-        # RAG pipeline
+        # RAG pipeline — deferred to first query to reduce startup memory
+        # (embedding model ~300MB, too heavy for Render free tier at boot)
         if self._settings.rag_enabled:
-            self._build_rag_pipeline()
+            logger.info("RAG enabled — pipeline will load on first RAG query")
 
         # ReAct agent (only if tools are available)
         if self._tools:
@@ -148,7 +149,7 @@ class AskVineetAgent:
         tool_names = [t.name for t in self._tools]
         route = classify_query(
             query=message,
-            rag_enabled=bool(self._rag_chain),
+            rag_enabled=self._settings.rag_enabled,
             available_tools=tool_names,
         )
 
@@ -202,6 +203,10 @@ class AskVineetAgent:
     # ── Route handlers ────────────────────────────────────────────────────
 
     def _handle_rag(self, message: str, sid: str, memory) -> AgentResponse:
+        # Lazy-build RAG pipeline on first RAG query (saves startup memory)
+        if not self._rag_chain and self._settings.rag_enabled:
+            self._build_rag_pipeline()
+
         if not self._rag_chain:
             return self._handle_direct(message, sid, memory)
 

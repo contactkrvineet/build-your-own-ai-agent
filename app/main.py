@@ -29,10 +29,17 @@ async def lifespan(app: FastAPI):
     s = get_settings()
     logger.info(f"Starting {s.agent_name} v{s.agent_version}...")
 
-    # Pre-warm the agent (builds RAG pipeline, loads tools)
-    from app.agent.core import get_agent
+    # Defer heavy init (RAG, embedding model) to a background task
+    # so the HTTP port binds immediately and Render detects it.
+    async def _deferred_init():
+        await asyncio.sleep(0.1)  # let the server bind first
+        from app.agent.core import get_agent
+        try:
+            get_agent()
+        except Exception as e:
+            logger.error(f"Agent init failed: {e}")
 
-    agent = get_agent()
+    asyncio.create_task(_deferred_init())
 
     # Start background workflows
     scheduler = None
