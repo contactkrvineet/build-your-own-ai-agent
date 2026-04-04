@@ -122,6 +122,7 @@ AgentVineet/
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
+├── render.yaml                 # Render.com deployment (IaC)
 ├── pytest.ini
 ├── ARCHITECTURE.md             # Full system architecture + tech decisions
 └── EXECUTION.md                # Complete step-by-step execution guide
@@ -191,6 +192,21 @@ docker compose up -d
 
 docker compose down
 ```
+
+### Deploy to Render (Free)
+
+1. Sign up at [render.com](https://render.com) (free, no credit card).
+2. **New → Blueprint** → connect your GitHub repo.
+3. Render detects `render.yaml` and creates both services automatically.
+4. Add `GROQ_API_KEY` in the Render dashboard under each service's **Environment**.
+5. Hit **Deploy** — your app is live.
+
+To enable GitHub Actions auto-deploy:
+
+1. In Render dashboard → each service → **Settings → Deploy Hook** → copy the URL.
+2. In GitHub → **Settings → Secrets → Actions** → add:
+   - `RENDER_DEPLOY_HOOK_API` — the API service deploy hook URL
+   - `RENDER_DEPLOY_HOOK_UI` — the UI service deploy hook URL (optional)
 
 ---
 

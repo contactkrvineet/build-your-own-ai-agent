@@ -1,0 +1,84 @@
+# =============================================================================
+# AskVineet — Render.com Infrastructure-as-Code
+#
+# Render deploys directly from this repo. Two services:
+#   1. askvineet-api  — FastAPI backend  (port 8000)
+#   2. askvineet-ui   — Streamlit UI     (port 8501)
+#
+# Setup:
+#   1. Sign up at https://render.com (free tier, no credit card)
+#   2. Connect your GitHub repo
+#   3. Render auto-detects this render.yaml and creates services
+#   4. Add environment variables in the Render dashboard
+#
+# Free tier limits: 512 MB RAM, shared CPU, spins down after 15 min idle
+# =============================================================================
+
+services:
+  # ── FastAPI Backend ─────────────────────────────────────────────────────────
+  - type: web
+    name: askvineet-api
+    runtime: docker
+    repo: https://github.com/contactkrvineet/build-your-own-ai-agent
+    branch: main
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health/
+    envVars:
+      # ── Required ──
+      - key: GROQ_API_KEY
+        sync: false # Must be set manually in Render dashboard
+      # ── Non-secret defaults ──
+      - key: APP_ENV
+        value: production
+      - key: LLM_PROVIDER
+        value: groq
+      - key: LLM_MODEL
+        value: llama3-8b-8192
+      - key: PYTHONPATH
+        value: /app
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # ── Optional (set in dashboard if needed) ──
+      - key: SECRET_KEY
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENWEATHERMAP_API_KEY
+        sync: false
+
+  # ── Streamlit UI ────────────────────────────────────────────────────────────
+  - type: web
+    name: askvineet-ui
+    runtime: docker
+    repo: https://github.com/contactkrvineet/build-your-own-ai-agent
+    branch: main
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: streamlit run ui/streamlit_app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false
+    envVars:
+      - key: API_BASE_URL
+        fromService:
+          name: askvineet-api
+          type: web
+          property: hostport
+      - key: PYTHONPATH
+        value: /app
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: APP_ENV
+        value: production
+      - key: LLM_PROVIDER
+        value: groq
+      - key: LLM_MODEL
+        value: llama3-8b-8192
