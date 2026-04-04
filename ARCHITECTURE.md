@@ -152,7 +152,7 @@ AgentResponse.sources   ← Source metadata shown to user
 **OCR Flow:**
 
 1. pypdf attempts text extraction from every PDF page.
-2. If a page yields < 100 chars (scanned), pytesseract + pdf2image is used.
+2. If a page yields no extractable text (empty/falsy), pytesseract + pdf2image is used as fallback.
 3. OCR can be globally toggled: `config.yaml → rag.ocr_enabled`.
 
 **Hot-Reload:**

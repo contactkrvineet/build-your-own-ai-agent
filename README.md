@@ -152,15 +152,15 @@ Interactive docs: **http://localhost:8000/docs**
 
 ### Local Development
 
-| Service              | URL                                      | Description                        |
-| -------------------- | ---------------------------------------- | ---------------------------------- |
-| **Streamlit UI**     | http://localhost:8501                    | Chat interface                     |
-| **FastAPI Backend**  | http://localhost:8000                    | REST API base                      |
-| **Swagger Docs**     | http://localhost:8000/docs               | Interactive API docs (auto-generated) |
-| **ReDoc**            | http://localhost:8000/redoc              | Alternative API docs               |
-| **Health Check**     | http://localhost:8000/health/            | System status                      |
-| **LLM Health**       | http://localhost:8000/health/llm         | LLM provider reachability          |
-| **WebSocket Chat**   | ws://localhost:8000/chat/ws/{session_id} | Real-time streaming chat           |
+| Service             | URL                                      | Description                           |
+| ------------------- | ---------------------------------------- | ------------------------------------- |
+| **Streamlit UI**    | http://localhost:8501                    | Chat interface                        |
+| **FastAPI Backend** | http://localhost:8000                    | REST API base                         |
+| **Swagger Docs**    | http://localhost:8000/docs               | Interactive API docs (auto-generated) |
+| **ReDoc**           | http://localhost:8000/redoc              | Alternative API docs                  |
+| **Health Check**    | http://localhost:8000/health/            | System status                         |
+| **LLM Health**      | http://localhost:8000/health/llm         | LLM provider reachability             |
+| **WebSocket Chat**  | ws://localhost:8000/chat/ws/{session_id} | Real-time streaming chat              |
 
 ### Docker (`docker compose up`)
 
@@ -168,13 +168,13 @@ Same URLs as local — ports `8000` (API) and `8501` (UI) are mapped by default.
 
 ### Render.com (Production)
 
-| Service              | URL                                                | Notes                              |
-| -------------------- | -------------------------------------------------- | ---------------------------------- |
-| **API**              | https://askvineet-api.onrender.com                 | FastAPI backend                    |
-| **UI**               | https://askvineet-ui.onrender.com                  | Streamlit chat app                 |
-| **Swagger Docs**     | https://askvineet-api.onrender.com/docs            | Live interactive docs              |
-| **Health Check**     | https://askvineet-api.onrender.com/health/         | Used by Render for health monitoring |
-| **WebSocket Chat**   | wss://askvineet-api.onrender.com/chat/ws/{session_id} | Secure streaming in production  |
+| Service            | URL                                                   | Notes                                |
+| ------------------ | ----------------------------------------------------- | ------------------------------------ |
+| **API**            | https://askvineet-api.onrender.com                    | FastAPI backend                      |
+| **UI**             | https://askvineet-ui.onrender.com                     | Streamlit chat app                   |
+| **Swagger Docs**   | https://askvineet-api.onrender.com/docs               | Live interactive docs                |
+| **Health Check**   | https://askvineet-api.onrender.com/health/            | Used by Render for health monitoring |
+| **WebSocket Chat** | wss://askvineet-api.onrender.com/chat/ws/{session_id} | Secure streaming in production       |
 
 > **Note**: Free-tier Render services spin down after 15 min idle. The first request after spin-down takes ~30-60 seconds to cold-start.
 
@@ -296,13 +296,13 @@ Any query that doesn't match RAG or tool keywords goes straight to the LLM.
 
 | Layer           | Technology              | Why                                        |
 | --------------- | ----------------------- | ------------------------------------------ |
-| Agent framework | LangChain 0.2           | Mature, LCEL, tool ecosystem               |
+| Agent framework | LangChain 0.3           | Mature, LCEL, tool ecosystem               |
 | LLM abstraction | LiteLLM 1.44            | 100+ providers, zero code change to switch |
 | Vector store    | ChromaDB 0.5            | Auto-persist, metadata filtering           |
 | Embeddings      | sentence-transformers   | Free, local, no API key                    |
 | API             | FastAPI 0.114           | Async, auto-docs, WebSocket, Pydantic      |
 | Scheduler       | APScheduler 3.10        | No broker required                         |
-| File watcher    | watchdog 5.0            | Cross-platform inotify wrapper             |
+| File watcher    | watchdog <5.0           | Cross-platform inotify wrapper             |
 | UI              | Streamlit 1.38          | Python-native rapid UI                     |
 | Config          | Pydantic Settings 2.5   | Type-safe, env override                    |
 | Testing         | pytest + pytest-asyncio | Standard, async support                    |
