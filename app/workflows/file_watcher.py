@@ -18,6 +18,7 @@ from app.rag.ingestion import SUPPORTED_EXTENSIONS
 from app.utils.logger import logger
 
 _observer: Optional[Observer] = None
+_handler: Optional[_DocumentHandler] = None
 
 
 # ---------------------------------------------------------------------------
@@ -27,10 +28,15 @@ _observer: Optional[Observer] = None
 class _DocumentHandler(FileSystemEventHandler):
     """Watchdog handler — queues supported files for indexing."""
 
-    def __init__(self, debounce_seconds: float = 2.0) -> None:
+    def __init__(self, debounce_seconds: float = 5.0) -> None:
         super().__init__()
         self._debounce = debounce_seconds
         self._pending: dict[str, float] = {}   # path → timestamp
+        self._skip: set[str] = set()           # paths to skip (already indexed by upload route)
+
+    def skip_next(self, path: str) -> None:
+        """Mark a path to be skipped once (upload route already indexed it)."""
+        self._skip.add(str(Path(path).resolve()))
 
     def on_created(self, event: FileCreatedEvent) -> None:
         if not event.is_directory:
@@ -43,6 +49,11 @@ class _DocumentHandler(FileSystemEventHandler):
     def _queue(self, path: str) -> None:
         file = Path(path)
         if file.suffix.lower() not in SUPPORTED_EXTENSIONS:
+            return
+        resolved = str(file.resolve())
+        if resolved in self._skip:
+            self._skip.discard(resolved)
+            logger.debug(f"File watcher: skipping {file.name} (already indexed by upload)")
             return
         self._pending[path] = time.monotonic()
         logger.debug(f"File watcher: queued {file.name}")
@@ -79,7 +90,7 @@ def _index_file(path: str) -> None:
 # ---------------------------------------------------------------------------
 
 def start_file_watcher() -> Optional[Observer]:
-    global _observer
+    global _observer, _handler
 
     s = get_settings()
     if not s.file_watcher_enabled:
@@ -89,13 +100,19 @@ def start_file_watcher() -> Optional[Observer]:
     watch_path = Path(s.rag_documents_path)
     watch_path.mkdir(parents=True, exist_ok=True)
 
-    handler = _DocumentHandler(debounce_seconds=2.0)
+    _handler = _DocumentHandler(debounce_seconds=5.0)
     _observer = Observer()
-    _observer.schedule(handler, str(watch_path), recursive=False)
+    _observer.schedule(_handler, str(watch_path), recursive=False)
     _observer.start()
 
     logger.info(f"File watcher started on: {watch_path.resolve()}")
     return _observer
+
+
+def skip_file_watcher(path: str) -> None:
+    """Tell the file watcher to skip the next event for this path."""
+    if _handler:
+        _handler.skip_next(path)
 
 
 def stop_file_watcher() -> None:

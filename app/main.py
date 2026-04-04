@@ -60,7 +60,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"File watcher failed to start: {e}")
 
-    logger.info(f"{s.agent_name} running on http://{s.api_host}:{s.api_port}")
+    import os
+    _port = os.environ.get("PORT", s.api_port)
+    logger.info(f"{s.agent_name} running on http://0.0.0.0:{_port}")
 
     yield  # ← application runs here
 

@@ -45,6 +45,13 @@ async def upload_document(file: UploadFile) -> dict:
 
     logger.info(f"Document uploaded: {dest}")
 
+    # Tell file watcher to skip this file (upload route handles indexing)
+    try:
+        from app.workflows.file_watcher import skip_file_watcher
+        skip_file_watcher(str(dest))
+    except Exception:
+        pass
+
     # Trigger hot-reload via agent
     try:
         from app.agent.core import get_agent

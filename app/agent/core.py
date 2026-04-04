@@ -16,6 +16,7 @@ Per-user state is stored in session memory (app/agent/memory.py).
 from __future__ import annotations
 
 import asyncio
+import threading
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Dict, Iterator, List, Optional
 
@@ -72,6 +73,7 @@ class AskVineetAgent:
         self._rag_chain = None
         self._react_executor: Optional[AgentExecutor] = None
         self._initialised = False
+        self._rag_lock = threading.Lock()
 
     # ── Lifecycle ─────────────────────────────────────────────────────────
 
@@ -102,6 +104,13 @@ class AskVineetAgent:
         logger.info("AskVineet agent ready.")
 
     def _build_rag_pipeline(self) -> None:
+        with self._rag_lock:
+            self._build_rag_pipeline_inner()
+
+    def _build_rag_pipeline_inner(self) -> None:
+        """Build RAG pipeline. Caller must hold _rag_lock."""
+        if self._rag_chain is not None:
+            return  # Already built by another thread
         try:
             from app.rag.retriever import build_rag_pipeline
 
@@ -191,14 +200,15 @@ class AskVineetAgent:
 
     def add_document(self, file_path: str) -> None:
         """Hot-add a single document to the existing vector store."""
-        if not self._vector_store:
-            logger.warning("Vector store not initialised — rebuilding.")
-            self._build_rag_pipeline()
-            return
+        with self._rag_lock:
+            if not self._vector_store:
+                logger.warning("Vector store not initialised — rebuilding.")
+                self._build_rag_pipeline_inner()
+                return
 
-        from app.rag.retriever import add_new_document_to_store
+            from app.rag.retriever import add_new_document_to_store
 
-        add_new_document_to_store(file_path, self._vector_store)
+            add_new_document_to_store(file_path, self._vector_store)
 
     # ── Route handlers ────────────────────────────────────────────────────
 
