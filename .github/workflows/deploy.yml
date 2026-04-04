@@ -173,8 +173,10 @@ jobs:
           echo "✅ API deploy triggered"
 
       - name: Trigger Render deploy — UI service (optional)
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_UI != '' }}
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_UI }}
+        if: env.HOOK != ''
         run: |
-          curl -sf "${{ secrets.RENDER_DEPLOY_HOOK_UI }}" \
+          curl -sf "$HOOK" \
             || { echo "⚠️ UI deploy hook failed (non-fatal)"; }
           echo "✅ UI deploy triggered"
