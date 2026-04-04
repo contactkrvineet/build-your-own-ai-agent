@@ -331,6 +331,9 @@ async function sendMessage() {
 document.addEventListener("DOMContentLoaded", () => {
   const input = $input();
 
+  // Send button click
+  $btn().addEventListener("click", () => sendMessage());
+
   // Enter / Cmd+Enter to send
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && (e.metaKey || !e.shiftKey)) {

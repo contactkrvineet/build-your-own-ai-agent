@@ -175,7 +175,16 @@ st.markdown(DARK_GREEN_CSS, unsafe_allow_html=True)
 # Constants
 # ---------------------------------------------------------------------------
 
-API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000").rstrip("/")
+# On Render, RENDER_EXTERNAL_HOSTNAME is auto-set (e.g. "askvineet-ui.onrender.com")
+# Derive the API URL from it if API_BASE_URL isn't explicitly set.
+_default_api = "http://localhost:8000"
+if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
+    # Render convention: UI service name ends with -ui, API with -api
+    _render_host = os.environ["RENDER_EXTERNAL_HOSTNAME"]
+    _api_host = _render_host.replace("-ui", "-api")
+    _default_api = f"https://{_api_host}"
+
+API_BASE = os.environ.get("API_BASE_URL", _default_api).rstrip("/")
 DEFAULT_SESSION = str(uuid.uuid4())
 
 # ---------------------------------------------------------------------------
