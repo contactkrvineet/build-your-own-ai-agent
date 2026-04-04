@@ -149,7 +149,7 @@ def mocked_agent():
     with (
         patch("app.agent.core._load_enabled_tools", return_value=[]),
         patch("app.agent.core.create_langchain_llm") as mock_llm,
-        patch("app.agent.core.build_rag_pipeline", side_effect=Exception("no rag")),
+        patch("app.rag.retriever.build_rag_pipeline", side_effect=Exception("no rag")),
     ):
         mock_llm_instance = MagicMock()
         mock_llm_instance.invoke.return_value = MagicMock(

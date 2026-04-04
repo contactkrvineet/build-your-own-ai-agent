@@ -45,7 +45,7 @@ class TestAskVineetAgent:
 
     @patch("app.agent.core._load_enabled_tools", return_value=[])
     @patch("app.agent.core.create_langchain_llm")
-    @patch("app.agent.core.build_rag_pipeline", side_effect=Exception("no docs"))
+    @patch("app.rag.retriever.build_rag_pipeline", side_effect=Exception("no docs"))
     def test_initialise_degrades_gracefully_without_rag(
         self, mock_rag, mock_llm, mock_tools
     ):
@@ -58,7 +58,7 @@ class TestAskVineetAgent:
 
     @patch("app.agent.core._load_enabled_tools", return_value=[])
     @patch("app.agent.core.create_langchain_llm")
-    @patch("app.agent.core.build_rag_pipeline", side_effect=Exception("no docs"))
+    @patch("app.rag.retriever.build_rag_pipeline", side_effect=Exception("no docs"))
     def test_chat_returns_response_object(self, mock_rag, mock_llm, mock_tools):
         mock_llm_instance = MagicMock()
         mock_llm_instance.invoke.return_value = MagicMock(content="Direct answer")
@@ -74,7 +74,7 @@ class TestAskVineetAgent:
 
     @patch("app.agent.core._load_enabled_tools", return_value=[])
     @patch("app.agent.core.create_langchain_llm")
-    @patch("app.agent.core.build_rag_pipeline", side_effect=Exception("no docs"))
+    @patch("app.rag.retriever.build_rag_pipeline", side_effect=Exception("no docs"))
     def test_session_continuity(self, mock_rag, mock_llm, mock_tools):
         """Same session_id should give the same session back."""
         mock_llm_instance = MagicMock()
@@ -92,7 +92,7 @@ class TestAskVineetAgent:
 
     @patch("app.agent.core._load_enabled_tools", return_value=[])
     @patch("app.agent.core.create_langchain_llm")
-    @patch("app.agent.core.build_rag_pipeline", side_effect=Exception("no docs"))
+    @patch("app.rag.retriever.build_rag_pipeline", side_effect=Exception("no docs"))
     def test_clear_session(self, mock_rag, mock_llm, mock_tools):
         mock_llm.return_value = MagicMock()
         agent = AskVineetAgent()

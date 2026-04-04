@@ -29,8 +29,8 @@ class RouteDecision(str, Enum):
 
 # Keyword heuristics (applied before the LLM classifier to save tokens)
 _TOOL_KEYWORDS = re.compile(
-    r"\b(weather|temperature|rain|forecast|email|gmail|inbox|calendar|"
-    r"meeting|event|schedule|appointment|api|fetch|get data)\b",
+    r"\b(weather|temperature|rain|forecast|emails?|gmail|inbox|calendar|"
+    r"meetings?|events?|schedule|appointments?|api|fetch|get data)\b",
     re.IGNORECASE,
 )
 
