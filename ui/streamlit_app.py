@@ -459,13 +459,19 @@ st.markdown(
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _api_post(endpoint: str, payload: dict) -> Optional[dict]:
+def _api_post(endpoint: str, payload: dict) -> tuple[Optional[dict], Optional[str]]:
     try:
         r = httpx.post(f"{API_BASE}{endpoint}", json=payload, timeout=60, follow_redirects=True)
         r.raise_for_status()
-        return r.json()
+        return r.json(), None
+    except httpx.ConnectError:
+        return None, f"Connection refused — backend unreachable at `{API_BASE}`"
+    except httpx.TimeoutException:
+        return None, f"Request timed out — backend at `{API_BASE}` may be cold-starting (Render free tier). Try again in 30s."
+    except httpx.HTTPStatusError as e:
+        return None, f"API returned HTTP {e.response.status_code}: {e.response.text[:200]}"
     except Exception as e:
-        return None
+        return None, f"Unexpected error: {e}"
 
 
 def _upload_document(file) -> Optional[dict]:
@@ -478,7 +484,14 @@ def _upload_document(file) -> Optional[dict]:
         )
         r.raise_for_status()
         return r.json()
-    except Exception:
+    except httpx.ConnectError:
+        st.error(f"Connection refused — backend unreachable at `{API_BASE}`")
+        return None
+    except httpx.TimeoutException:
+        st.error(f"Upload timed out — backend at `{API_BASE}` may be cold-starting. Try again in 30s.")
+        return None
+    except Exception as e:
+        st.error(f"Upload error: {e}")
         return None
 
 
@@ -571,7 +584,7 @@ if prompt := st.chat_input("Ask me anything..."):
     # Get response from API
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            response = _api_post(
+            response, api_error = _api_post(
                 "/chat/",
                 {"message": prompt, "session_id": st.session_state.session_id},
             )
@@ -612,10 +625,7 @@ if prompt := st.chat_input("Ask me anything..."):
                 }
             )
         else:
-            err_msg = (
-                "❌ Could not connect to the AskVineet API. "
-                "Start the backend with:\n```\nuvicorn app.main:app --reload\n```"
-            )
+            err_msg = f"❌ Could not reach the API. {api_error or 'Unknown error.'}"
             st.error(err_msg)
             st.session_state.messages.append(
                 {"role": "assistant", "content": err_msg}

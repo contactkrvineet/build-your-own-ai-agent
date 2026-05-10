@@ -315,8 +315,7 @@ async function sendMessage() {
     removeTypingIndicator();
     appendMessage(
       "assistant",
-      "❌ Cannot reach AskVineet API. Is the backend running?\n" +
-        "Start it with: uvicorn app.main:app --reload",
+      "❌ Cannot reach AskVineet API. The backend may be cold-starting (Render free tier spins down after inactivity). Please wait 30s and try again.",
     );
     setStatus("disconnected");
     console.error("AskVineet API error:", err);
