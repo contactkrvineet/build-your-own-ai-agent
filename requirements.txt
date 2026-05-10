@@ -9,10 +9,11 @@ langchain-community>=0.3.0,<0.4.0
 langchain-core>=0.3.0,<0.4.0
 
 # ── LLM Abstraction (100+ providers via one API) ─────────────────────────────
-litellm==1.44.22
+litellm>=1.57.0,<2.0.0
+groq>=0.11.0  # Native Groq SDK — used by litellm for proper error handling
 
 # ── LLM Provider SDKs (install only what you use) ────────────────────────────
-openai==1.40.0
+openai>=1.55.0,<2.0.0
 anthropic==0.34.0
 google-generativeai==0.7.2
 
