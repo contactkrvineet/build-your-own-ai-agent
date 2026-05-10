@@ -61,7 +61,7 @@ services:
     repo: https://github.com/contactkrvineet/build-your-own-ai-agent
     branch: main
     plan: free
-    dockerfilePath: ./Dockerfile.ui   # Dedicated UI Dockerfile — reads $PORT correctly
+    dockerfilePath: ./Dockerfile.ui # Dedicated UI Dockerfile — reads $PORT correctly
     dockerContext: .
     envVars:
       - key: PORT
