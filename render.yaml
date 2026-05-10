@@ -61,9 +61,8 @@ services:
     repo: https://github.com/contactkrvineet/build-your-own-ai-agent
     branch: main
     plan: free
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./Dockerfile.ui   # Dedicated UI Dockerfile — reads $PORT correctly
     dockerContext: .
-    dockerCommand: streamlit run ui/streamlit_app.py --server.port 10000 --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false
     envVars:
       - key: PORT
         value: "10000"

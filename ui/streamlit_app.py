@@ -490,7 +490,10 @@ def _show_health() -> None:
         else:
             st.sidebar.warning(f"⚠️ API status: {r.status_code}")
     except Exception:
-        st.sidebar.error("❌ API offline — start with `uvicorn app.main:app`")
+        st.sidebar.error(
+            f"❌ API offline — backend may be warming up (Render free tier spins down after inactivity). "
+            f"Try again in 30 s. Configured at: `{API_BASE}`"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -524,7 +527,7 @@ with st.sidebar:
         if resp:
             st.success(f"✅ Indexed: {resp.get('filename')}")
         else:
-            st.error("Upload failed — is the API running?")
+            st.error(f"Upload failed — API unreachable at `{API_BASE}`. Backend may still be warming up.")
 
     st.markdown("---")
     st.markdown("### 🩺 System Status")
