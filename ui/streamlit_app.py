@@ -411,7 +411,12 @@ if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
     _api_host = _render_host.replace("-ui", "-api")
     _default_api = f"https://{_api_host}"
 
-API_BASE = os.environ.get("API_BASE_URL", _default_api).rstrip("/")
+# BACKEND_URL takes priority, then API_BASE_URL, then the auto-derived default
+API_BASE = (
+    os.environ.get("BACKEND_URL")
+    or os.environ.get("API_BASE_URL")
+    or _default_api
+).rstrip("/")
 DEFAULT_SESSION = str(uuid.uuid4())
 
 # ---------------------------------------------------------------------------

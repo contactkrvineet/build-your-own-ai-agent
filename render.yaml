@@ -67,8 +67,10 @@ services:
     envVars:
       - key: PORT
         value: "10000"
+      - key: BACKEND_URL
+        value: https://askvineet-api.onrender.com
       - key: API_BASE_URL
-        sync: false # Set manually: https://askvineet-api.onrender.com
+        sync: false # Optional override; BACKEND_URL is used by default
       - key: PYTHONPATH
         value: /app
       - key: PYTHONDONTWRITEBYTECODE
